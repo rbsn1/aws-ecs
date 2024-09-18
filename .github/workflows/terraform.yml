@@ -3,7 +3,7 @@ name: Deploy to AWS ECS
 on:
   push:
     branches:
-      - feature/lambda
+      - feature/ecs
 
 jobs:
   build_and_deploy:
