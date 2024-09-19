@@ -112,7 +112,7 @@ resource "aws_ecs_service" "ecs_service" {
 
   network_configuration {
     subnets         = data.aws_subnets.default.ids
-    security_groups = data.aws_security_groups.default.ids
+    security_groups = tolist(slice(data.aws_security_groups.default.ids, 0, 5))  # Limitar a 5 grupos de segurança
     assign_public_ip = true
   }
 
