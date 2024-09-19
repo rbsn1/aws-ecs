@@ -13,13 +13,18 @@ data "aws_vpc" "default" {
   default = true
 }
 
-data "aws_subnet_ids" "default" {
-  vpc_id = data.aws_vpc.default.id
+data "aws_subnets" "default" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.default.id]
+  }
 }
 
-data "aws_security_group" "default" {
-  name   = "default"
-  vpc_id = data.aws_vpc.default.id
+data "aws_security_groups" "default" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.default.id]
+  }
 }
 
 # Criar bucket S3 com nome único
@@ -103,8 +108,8 @@ resource "aws_ecs_service" "ecs_service" {
   launch_type     = "FARGATE"
 
   network_configuration {
-    subnets         = data.aws_subnet_ids.default.ids
-    security_groups = [data.aws_security_group.default.id]
+    subnets         = data.aws_subnets.default.ids
+    security_groups = data.aws_security_groups.default.ids
     assign_public_ip = true
   }
 
