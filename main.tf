@@ -42,7 +42,7 @@ resource "aws_s3_bucket" "bucket" {
 
 # Armazenar segredos no Secrets Manager
 resource "aws_secretsmanager_secret" "db_secret" {
-  name        = "db-password"
+  name        = "db-pass"
   description = "Senha do banco de dados"
 }
 
