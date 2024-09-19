@@ -35,7 +35,7 @@ resource "aws_ecs_task_definition" "ecs_task" {
   container_definitions = jsonencode([
     {
       name  = "minha-app"
-      image = "meu-repo-ecr/minha-imagem:latest"
+      image = var.image_url
       essential = true
       portMappings = [
         {
