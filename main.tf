@@ -2,9 +2,33 @@ provider "aws" {
   region = "us-east-1"
 }
 
-# Criar bucket S3
+# Declarar variável para a URL da imagem
+variable "image_url" {
+  description = "URL da imagem Docker no ECR"
+  type        = string
+}
+
+# Data sources para obter o VPC padrão, subnets e security groups
+data "aws_vpc" "default" {
+  default = true
+}
+
+data "aws_subnet_ids" "default" {
+  vpc_id = data.aws_vpc.default.id
+}
+
+data "aws_security_group" "default" {
+  name   = "default"
+  vpc_id = data.aws_vpc.default.id
+}
+
+# Criar bucket S3 com nome único
+resource "random_id" "bucket_id" {
+  byte_length = 4
+}
+
 resource "aws_s3_bucket" "bucket" {
-  bucket = "meu-bucket-de-armazenamento"
+  bucket = "meu-bucket-${random_id.bucket_id.hex}"
   acl    = "private"
 }
 
@@ -24,18 +48,41 @@ resource "aws_ecs_cluster" "ecs_cluster" {
   name = "meu-cluster"
 }
 
-# Criar tarefa ECS
+# Criar IAM Role para o ECS Task Execution
+resource "aws_iam_role" "ecs_task_execution_role" {
+  name = "ecsTaskExecutionRole"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action    = "sts:AssumeRole"
+      Effect    = "Allow"
+      Principal = {
+        Service = "ecs-tasks.amazonaws.com"
+      }
+    }]
+  })
+}
+
+# Anexar políticas à role
+resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy" {
+  role       = aws_iam_role.ecs_task_execution_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
+
+# Criar definição de tarefa ECS
 resource "aws_ecs_task_definition" "ecs_task" {
   family                   = "minha-tarefa"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   cpu                      = "256"
   memory                   = "512"
+  execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
 
   container_definitions = jsonencode([
     {
-      name  = "minha-app"
-      image = var.image_url
+      name      = "minha-app"
+      image     = var.image_url
       essential = true
       portMappings = [
         {
@@ -54,9 +101,12 @@ resource "aws_ecs_service" "ecs_service" {
   task_definition = aws_ecs_task_definition.ecs_task.arn
   desired_count   = 1
   launch_type     = "FARGATE"
+
   network_configuration {
-    subnets         = ["subnet-12345"]
-    security_groups = ["sg-12345"]
+    subnets         = data.aws_subnet_ids.default.ids
+    security_groups = [data.aws_security_group.default.id]
     assign_public_ip = true
   }
+
+  depends_on = [aws_iam_role_policy_attachment.ecs_task_execution_role_policy]
 }
