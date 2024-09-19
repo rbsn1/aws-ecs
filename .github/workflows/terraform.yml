@@ -17,7 +17,7 @@ jobs:
       # Definir variáveis
       - name: Set up variables
         run: |
-          IMAGE_REPO_NAME=my-repo-name      # Nome do seu repositório ECR
+          IMAGE_REPO_NAME=ecs/image      # Nome do seu repositório ECR
           IMAGE_TAG=${{ github.sha }}       # Usar o SHA do commit como tag da imagem
           IMAGE_FULL_NAME=103911837471.dkr.ecr.us-east-1.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG
           echo "IMAGE_REPO_NAME=$IMAGE_REPO_NAME" >> $GITHUB_ENV
