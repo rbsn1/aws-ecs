@@ -8,22 +8,25 @@ variable "image_url" {
   type        = string
 }
 
-# Data sources para obter o VPC padrão, subnets e security groups
-data "aws_vpc" "default" {
-  default = true
+# Declarar variável para o ID da VPC
+variable "vpc_id" {
+  description = "ID da VPC onde os recursos serão provisionados"
+  type        = string
+  default     = "vpc-0d47ba13f56c2e7ef"  # Coloque o ID da sua VPC aqui
 }
 
+# Data sources para obter subnets e security groups da VPC fornecida
 data "aws_subnets" "default" {
   filter {
     name   = "vpc-id"
-    values = [data.aws_vpc.default.id]
+    values = [var.vpc_id]
   }
 }
 
 data "aws_security_groups" "default" {
   filter {
     name   = "vpc-id"
-    values = [data.aws_vpc.default.id]
+    values = [var.vpc_id]
   }
 }
 
