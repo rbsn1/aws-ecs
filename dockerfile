@@ -14,5 +14,5 @@ COPY . .
 # Define a porta que a aplicação vai rodar
 EXPOSE 80
 
-# Comando para iniciar a aplicação
-CMD ["python", "app.py"]
+# Comando para iniciar a aplicação FastAPI com Uvicorn
+CMD ["uvicorn", "sac_barcelos.main:app", "--host", "0.0.0.0", "--port", "80"]
